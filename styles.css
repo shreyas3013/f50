@@ -43,10 +43,13 @@ body {
   color: var(--white);
   font-family: var(--font-body);
   overflow-x: hidden;
-  cursor: none;
+  /* Default cursor retained until JS confirms custom cursor works */
 }
 
-a, button { cursor: none; }
+/* Hide native cursor only after JS attaches the custom cursor */
+body.js-cursor-active,
+body.js-cursor-active a,
+body.js-cursor-active button { cursor: none; }
 
 img, svg, canvas { display: block; }
 
@@ -1418,10 +1421,8 @@ h1, h2, h3, h4 {
 ═══════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
+    animation: none !important;
+    transition: none !important;
   }
-  .film-grain, .scroll-arrow, .hotspot__pulse,
-  .btn-pulse, .cta__spotlight, .marquee__track { animation: none !important; }
   html { scroll-behavior: smooth; }
 }

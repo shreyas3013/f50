@@ -662,6 +662,9 @@
     const el = document.getElementById('cursor');
     if (!el) return;
 
+    // Activate custom cursor — hide native cursor via JS class
+    document.body.classList.add('js-cursor-active');
+
     window.addEventListener('mousemove', e => {
       cursorPos.x = e.clientX;
       cursorPos.y = e.clientY;
@@ -850,9 +853,6 @@
 
         impactCtx.beginPath();
         impactCtx.arc(p.x, p.y, p.size * p.alpha, 0, Math.PI * 2);
-        impactCtx.fillStyle = p.color.replace(')', `,${p.alpha})`).replace('rgb', 'rgba').replace('#FFD700', `rgba(255,215,0,${p.alpha})`).replace('#F5F5F5', `rgba(245,245,245,${p.alpha})`);
-
-        // Fallback simpler fill
         impactCtx.fillStyle = p.color === '#FFD700'
           ? `rgba(255,215,0,${p.alpha})`
           : `rgba(245,245,245,${p.alpha})`;
@@ -876,7 +876,7 @@
         const progress = Math.min((ts - start) / dur, 1);
         const ease = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
         const val  = ease * target;
-        el.textContent = isFloat ? val.toFixed(1) : Math.round(val).toString().padStart(el.dataset.target.length, '0');
+        el.textContent = isFloat ? val.toFixed(1) : Math.round(val).toString().padStart(target.toString().length, '0');
         if (progress < 1) requestAnimationFrame(step);
         else el.textContent = isFloat ? target.toFixed(1) : target.toString();
       }
@@ -955,7 +955,7 @@
       track.style.transform = `translateX(${currentX}px)`;
       const progress = -currentX / (getMaxScroll() || 1);
       const idx = Math.round(progress * 3) + 1;
-      if (indexEl) indexEl.textContent = `0${idx} / 04`;
+      if (indexEl) indexEl.textContent = `${String(idx).padStart(2, '0')} / 04`;
 
       // Color-bleed body background
       const cards = track.querySelectorAll('.cw-card');
@@ -1354,6 +1354,9 @@
     });
 
     // ── Section 09: Final CTA ────────────────
+    // Set initial hidden state before creating the trigger
+    gsap.set('#ctaBuy,#ctaLearn', { opacity: 0, y: 20 });
+
     ScrollTrigger.create({
       trigger: '#s09',
       start: 'top 70%',
@@ -1372,9 +1375,6 @@
         }
       }
     });
-
-    // Ensure cta buttons are visible (in case opacity wasn't set)
-    gsap.set('#ctaBuy,#ctaLearn', { opacity: 0, y: 20 });
 
     // ── Section 10: Footer ───────────────────
     ScrollTrigger.create({
