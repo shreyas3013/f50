@@ -92,7 +92,12 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = false;
-    renderer.outputEncoding = THREE.sRGBEncoding;
+    // Support both Three.js r128 (outputEncoding) and r152+ (outputColorSpace)
+    if ('outputColorSpace' in renderer) {
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+    } else {
+      renderer.outputEncoding = THREE.sRGBEncoding;
+    }
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.1;
 
@@ -876,7 +881,8 @@
         const progress = Math.min((ts - start) / dur, 1);
         const ease = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
         const val  = ease * target;
-        el.textContent = isFloat ? val.toFixed(1) : Math.round(val).toString().padStart(target.toString().length, '0');
+        const intTarget = Math.round(target);
+        el.textContent = isFloat ? val.toFixed(1) : Math.round(val).toString().padStart(intTarget.toString().length, '0');
         if (progress < 1) requestAnimationFrame(step);
         else el.textContent = isFloat ? target.toFixed(1) : target.toString();
       }
@@ -948,18 +954,18 @@
 
     function clampX(x) { return Math.max(-getMaxScroll(), Math.min(0, x)); }
 
-    let currentX = 0;
+    const cards = track.querySelectorAll('.cw-card');
+    const totalCards = cards.length;
 
     function setTrackX(x) {
       currentX = clampX(x);
       track.style.transform = `translateX(${currentX}px)`;
       const progress = -currentX / (getMaxScroll() || 1);
-      const idx = Math.round(progress * 3) + 1;
-      if (indexEl) indexEl.textContent = `${String(idx).padStart(2, '0')} / 04`;
+      const idx = Math.round(progress * (totalCards - 1)) + 1;
+      if (indexEl) indexEl.textContent = `${String(idx).padStart(2, '0')} / ${String(totalCards).padStart(2, '0')}`;
 
       // Color-bleed body background
-      const cards = track.querySelectorAll('.cw-card');
-      const nearIdx = Math.round(progress * (cards.length - 1));
+      const nearIdx = Math.round(progress * (totalCards - 1));
       const card = cards[nearIdx];
       if (card) {
         const bg = card.dataset.bg || '#0d0d0d';
@@ -1023,7 +1029,7 @@
     function snapToCard() {
       const cardW = track.querySelector('.cw-card')?.offsetWidth + 24 || 380;
       const snapIdx = Math.round(-currentX / cardW);
-      const target  = -Math.min(snapIdx, 3) * cardW;
+      const target  = -Math.min(snapIdx, totalCards - 1) * cardW;
       let snapPos = currentX;
       function animate() {
         snapPos += (target - snapPos) * 0.14;
